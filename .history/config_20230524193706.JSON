@@ -1,0 +1,43 @@
+{
+    "FILETYPES": {
+        "images": [
+            "JPEG",
+            "PNG",
+            "JPG",
+            "SVG",
+            "BMP"
+        ],
+        "videos": [
+            "AVI",
+            "MP4",
+            "MOV",
+            "MKV",
+            "WEBM"
+        ],
+        "docs": [
+            "DOC",
+            "DOCX",
+            "TXT",
+            "PDF",
+            "XLSX",
+            "PPTX",
+            "EPUB"
+        ],
+        "music": [
+            "MP3",
+            "OGG",
+            "WAV",
+            "AMR",
+            "AIFF"
+        ],
+        "archives": [
+            "ZIP",
+            "GZ",
+            "TAR"
+        ],
+        "apps": [
+            "EXE",
+            "APK"
+        ]
+    }
+}
