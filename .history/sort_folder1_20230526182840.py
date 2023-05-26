@@ -6,7 +6,7 @@ import shutil
 from translit import normalize
 from threading import Thread, Event
 from pathlib import Path
-
+from time import sleep
 
 CATEGORIES = {}
 found_files = {}
@@ -25,6 +25,13 @@ def read_config():
         CATEGORIES = cfg_data["FILETYPES"]
         for key in CATEGORIES:
             found_files.update({key: []})
+
+
+def th_scan_folder(path: Path, event: Event):
+    scan_folder(path)
+    logging.debug('Notify all')
+    event.set()
+    sleep(2)
 
 
 def scan_folder(path: Path):
@@ -71,10 +78,12 @@ def unpack_files(target_path: Path):
     files = [x for x in arc_dir.iterdir()]
 
     for file in files:
+        new_dir = arc_dir / file.name
         try:
-            shutil.unpack_archive(file, arc_dir)
-        except (FileExistsError, shutil.ReadError) as err:
-            print(err)
+            new_dir.mkdir(exist_ok=True)
+            shutil.unpack_archive(file, new_dir)
+        except (FileExistsError, shutil.ReadError):
+            pass
         try:
             file.unlink()  # delete unpacked archive
         except FileNotFoundError:
@@ -96,7 +105,8 @@ def normalize_all(path: Path):
             item.rename(new_name)
 
 
-def report_category(category: str, files_lst: list):
+def report_category(category: str, files_lst: list, event: Event):
+    event.wait()
     logging.debug(f'started thread')
     return(f'Found files in category "{category.capitalize()}": ', len(files_lst))
 
@@ -126,16 +136,20 @@ if __name__ == "__main__":
         print("The specified path does not exist")
     
     try:
+        event = Event()
         threads = []
+        th1=Thread(target=th_scan_folder, args=(work_path, event, ))
+        th1.start()
+        threads.append(th1)
         
-        scan_folder(work_path)
+        
         # create folders only for found file types
         for category in found_files.keys():
             if len(found_files.get(category)) > 0:
                 th = Thread(name={category}, target=report_category, args=(category, 
                                                           move_files(found_files.get(category),
                                                                      out_path,
-                                                                     str(category)),)
+                                                                     str(category)),event,)
                 )
                 th.start()
                 threads.append(th)

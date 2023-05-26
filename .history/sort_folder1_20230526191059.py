@@ -6,7 +6,7 @@ import shutil
 from translit import normalize
 from threading import Thread, Event
 from pathlib import Path
-
+from time import sleep
 
 CATEGORIES = {}
 found_files = {}
@@ -25,6 +25,13 @@ def read_config():
         CATEGORIES = cfg_data["FILETYPES"]
         for key in CATEGORIES:
             found_files.update({key: []})
+
+
+def th_scan_folder(path: Path, event: Event):
+    scan_folder(path)
+    logging.debug('Notify all')
+    event.set()
+    sleep(2)
 
 
 def scan_folder(path: Path):
@@ -97,6 +104,7 @@ def normalize_all(path: Path):
 
 
 def report_category(category: str, files_lst: list):
+    # event.wait()
     logging.debug(f'started thread')
     return(f'Found files in category "{category.capitalize()}": ', len(files_lst))
 
@@ -126,7 +134,11 @@ if __name__ == "__main__":
         print("The specified path does not exist")
     
     try:
+        # event = Event()
         threads = []
+        # th1=Thread(target=th_scan_folder, args=(work_path, event, ))
+        # th1.start()
+        # threads.append(th1)
         
         scan_folder(work_path)
         # create folders only for found file types
